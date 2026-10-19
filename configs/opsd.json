@@ -1,0 +1,21 @@
+{
+ "method": "opsd",
+ "seed": 20261018,
+ "batch": 32,
+ "epochs": 2,
+ "lr_peak": 1e-5,
+ "lr_end": 1e-6,
+ "warmup": 5,
+ "teacher_cond": "gold_step_mode",
+ "max_new_tokens": 256,
+ "temperature": 0.7,
+ "top_p": 0.95,
+ "top_k": 20,
+ "repetition_guard": 0.4,
+ "token_budget": 16384,
+ "round_to": 512,
+ "vllm_mem": 0.20,
+ "optimizer": "gpu",
+ "teacher_device": "cuda:0",
+ "export_epochs": [1]
+}

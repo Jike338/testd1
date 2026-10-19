@@ -1,0 +1,14 @@
+{
+ "method": "sft",
+ "seed": 20261018,
+ "batch": 32,
+ "epochs": 2,
+ "lr_peak": 1e-5,
+ "lr_end": 1e-6,
+ "warmup_frac": 0.05,
+ "token_budget": 16384,
+ "round_to": 512,
+ "optimizer": "gpu",
+ "end_token_id": 106,
+ "export_epochs": [1]
+}

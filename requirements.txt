@@ -1,0 +1,9 @@
+# Tested with: torch 2.13.0 (CUDA 13), transformers 5.17.0, vllm 0.29.0, openai 3.8.0, accelerate 1.14.0.
+# Qwen 3.5 models additionally need flash-linear-attention 0.5.2 and causal-conv1d 1.7.0 for fast linear-attention layers.
+torch>=2.13
+transformers>=5.17
+vllm>=0.29
+openai>=3.8
+accelerate>=1.14
+pyyaml
+# plus the official harness: git clone https://github.com/whowhenpro/whowhen_pro.git && pip install -e whowhen_pro

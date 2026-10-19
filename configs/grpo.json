@@ -1,0 +1,18 @@
+{
+ "method": "grpo",
+ "seed": 20261018,
+ "batch": 32,
+ "group": 8,
+ "epochs": 2,
+ "lr_peak": 1e-6,
+ "warmup": 5,
+ "max_new_tokens": 256,
+ "temperature": 1.0,
+ "top_p": 1.0,
+ "top_k": 0,
+ "token_budget": 16384,
+ "round_to": 512,
+ "vllm_mem": 0.20,
+ "optimizer": "gpu",
+ "export_epochs": [1]
+}

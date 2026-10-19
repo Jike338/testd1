@@ -1,0 +1,6 @@
+data/built/
+runs/
+results/
+logs/
+__pycache__/
+*.pyc
