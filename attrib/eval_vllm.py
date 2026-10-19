@@ -26,6 +26,17 @@ from whowhen_eval.score import score as score_prediction
 from whowhen_eval.store import ResultsStore
 
 
+REPAIR_FREE = ("Before you answer, treat the decisive error as a repair problem. On the first line write "
+               "'Minimal fix: <the smallest change to one agent's turn that would have prevented the failure>'. "
+               "Then give your answer in the required format.")
+REPAIR = ("Before you answer, treat the decisive error as a repair problem. On the first line write "
+          "'Minimal fix: <the smallest change to one agent's turn that would have prevented the failure>'. "
+          "Typical fixes: add a missing check or verification; keep working instead of stopping early; correct a specific wrong value, claim or step; "
+          "do not adopt another agent's answer without checking it; follow what the task actually asks; re-plan. "
+          "Choose the error mode that matches the kind of fix: a missing action or check points to an omission or process mode, "
+          "a wrong value or claim points to a reasoning mode. Then give your answer in the required format.")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", required=True)
@@ -39,11 +50,12 @@ def main():
     ap.add_argument("--seed", type=int, default=None)
     ap.add_argument("--concurrency", type=int, default=48)
     ap.add_argument("--hint", default="none", choices=["none", "omission", "gold_step", "gold_step_mode"])
+    ap.add_argument("--variant", default="plain", choices=["plain", "repair", "repair_free"], help="repair: write the minimal fix first (diagnose-by-repair probe)")
     a = ap.parse_args()
     tax = load_taxonomy(a.data_root)
     client = AsyncOpenAI(base_url=a.base, api_key="local", timeout=1800, max_retries=3)
     sem = asyncio.Semaphore(a.concurrency)
-    tag = f"{a.model}_think{a.think}" + ("" if a.hint == "none" else "_" + a.hint) + (f"_t{a.temperature}_s{a.seed}" if a.seed is not None else "")
+    tag = f"{a.model}_think{a.think}" + ("" if a.hint == "none" else "_" + a.hint) + ("" if a.variant == "plain" else "_" + a.variant) + (f"_t{a.temperature}_s{a.seed}" if a.seed is not None else "")
 
     def hint_text(gt, fw):
         if a.hint == "omission":
@@ -62,6 +74,8 @@ def main():
         base["ground_truth"] = gt
         base["error_mode"] = gt.get("mode") if isinstance(gt, dict) else None
         parts = build_prompt(rel, ref.framework, tax) + ([dict(type="text", text="\n\n" + hint_text(gt, ref.framework))] if a.hint != "none" else [])
+        if a.variant != "plain":
+            parts = parts + [dict(type="text", text="\n\n" + (REPAIR if a.variant == "repair" else REPAIR_FREE))]
         t0, raw, err, usage = time.monotonic(), None, None, {}
         try:
             extra = {"chat_template_kwargs": {"enable_thinking": bool(a.think)}}

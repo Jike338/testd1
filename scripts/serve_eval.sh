@@ -6,7 +6,7 @@ set -uo pipefail
 CKPT=$1; TAG=$2; DATA=$3; PORT=${4:-8000}; shift $(( $# < 4 ? $# : 4 ))
 REPO=$(cd "$(dirname "$0")/.." && pwd); mkdir -p $REPO/logs
 cat $REPO/data/splits/id_test_ids.txt $REPO/data/splits/ood_test_ids.txt > /tmp/wwp_eval_ids_$PORT.txt
-vllm serve "$CKPT" --served-model-name "$TAG" --port $PORT --max-model-len 40960 --gpu-memory-utilization ${VLLM_MEM:-0.90} \
+python -m vllm.entrypoints.openai.api_server --model "$CKPT" --served-model-name "$TAG" --port $PORT --max-model-len 40960 --gpu-memory-utilization ${VLLM_MEM:-0.90} \
   --limit-mm-per-prompt '{"image":0,"video":0}' --max-num-seqs 64 > $REPO/logs/vllm_$TAG.log 2>&1 &
 VP=$!; trap 'kill $VP 2>/dev/null; wait $VP 2>/dev/null' EXIT
 for i in $(seq 1 180); do curl -sf http://127.0.0.1:$PORT/health > /dev/null && break; kill -0 $VP 2>/dev/null || { echo VLLM_DIED; tail -20 $REPO/logs/vllm_$TAG.log; exit 1; }; sleep 10; done

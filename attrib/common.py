@@ -48,8 +48,13 @@ def load_model(path, device="cuda:0", train=False, fp32_trainable=False, grad_ck
     optimizer keeps an fp32 master copy on the host (see `make_optimizer`).
     """
     import torch
-    from transformers import AutoModelForImageTextToText
-    m = AutoModelForImageTextToText.from_pretrained(path, dtype=torch.bfloat16, attn_implementation="sdpa").to(device)
+    import transformers
+    from transformers import AutoConfig, AutoModelForImageTextToText
+    # Load the class the checkpoint declares (e.g. Qwen3_5ForConditionalGeneration, Gemma4ForConditionalGeneration);
+    # the Auto class can fail on some vision configs once vLLM has been imported in the same process.
+    arch = (AutoConfig.from_pretrained(path).architectures or [None])[0]
+    cls = getattr(transformers, arch, None) if arch else None
+    m = (cls or AutoModelForImageTextToText).from_pretrained(path, dtype=torch.bfloat16, attn_implementation="sdpa").to(device)
     m.requires_grad_(False)
     if train:
         names = [n for n, _ in m.named_parameters()]
